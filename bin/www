@@ -1,0 +1,208 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var app = require('../app');
+var debug = require('debug')('teamcontrol-reader:server');
+var http = require('http');
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '8080');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+var io = require('socket.io').listen(server);
+
+io.on('connection', function (socket) {
+  console.log("connected");
+  socket.on('foo', function(foo){
+    console.log(foo);
+    //socket.emit('foo', 'blub');
+  });
+});
+
+
+
+server.listen(port, '127.0.0.1');
+server.on('error', onError);
+server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
+
+// RFID
+
+pcsc = require('pcsclite');
+pcsc = pcsc();
+lastRead = false;
+
+// PC/SC interface.
+pcsc.on('reader', function(reader) {
+    console.log('Reader detected:', reader);
+
+    reader.on('error', function(err) {
+        console.log('Error(', reader.name, '):', err.message);
+    });
+
+    reader.on('status', function(status) {
+        console.log('Status(', reader.name, '):', status);
+
+        // Check changes.
+        var changes = this.state ^ status.state;
+        if (changes) {
+            
+            // Card removed.
+            if ((changes & this.SCARD_STATE_EMPTY) && (status.state & this.SCARD_STATE_EMPTY)) {
+                console.log('Status(', reader.name, '): Card removed');
+                
+                reader.disconnect(reader.SCARD_LEAVE_CARD, function(err) {
+                    if (err) {
+                        console.log('Error(', reader.name, '):', err);
+                    }
+                    else {
+                        console.log('Status(', reader.name, '): Disconnected');
+                    }
+                });
+
+            }
+
+            // Card inserted.
+            else if ((changes & this.SCARD_STATE_PRESENT) && (status.state & this.SCARD_STATE_PRESENT)) {
+                console.log('Status(', reader.name, '): Card inserted');
+                
+                reader.connect({ share_mode : this.SCARD_SHARE_SHARED }, function(err, protocol) {
+                    if (err) {
+                        console.log('Error(', reader.name, '):', err);
+                    }
+                    else {
+                        console.log('Protocol(', reader.name, '):', protocol);
+
+                        /* 
+                            Read card UID: [0xFF, 0xCA, 0x00, 0x00, 0x00]
+
+                            UID is specified in the ISO 14443 T=CL transport protocol while APDU's are specified in the ISO 7816 application layer protocol.
+                            "Get Data Command" is defined in PCSC 3 v2. If your driver is PCSC v2 compliant, you can get UID using it:
+                            Class = 0xFF
+                            INS = 0xCA
+                            P1 = 0x00
+                            P2 = 0x00
+                            Le = 0x00 (return full length: ISO14443A single 4 bytes, double 7 bytes, triple 10 bytes, for ISO14443B 4 bytes PUPI, for 15693 8 bytes UID)
+                            
+                            Expected response: Data+SW1SW2
+                        */                        
+                        var message = new Buffer([0xFF, 0xCA, 0x00, 0x00, 0x00]);
+
+                        reader.transmit(message, 40, protocol, function(err, data) {
+                            if (err) {
+                                console.log('Error(', reader.name, '):', err);
+                            }
+                            else {
+                                /*
+                                    buf.readUIntLE(offset, byteLength[, noAssert])
+                                    Set noAssert to true to skip validation of value and offset. Defaults to false.
+                                */
+                                // Hier sind die Daten des Readers
+                                lastRead = data.readUIntBE(0, 7, true).toString(16);
+
+                                // Daten an die API schicken
+                                // ...
+
+                                // Hier den Sockets die Antwort mitteilen
+                                io.sockets.emit('foo', lastRead);
+                                
+                                console.log('Status(', reader.name, '): Read:', data, ' toString:', lastRead);
+                            }
+                        });
+                    }
+                });
+            }
+        }
+    });
+
+    reader.on('end', function() {
+        console.log('Status(', reader.name, '): Removed');
+
+        // Release resources.
+        reader.close();
+        pcsc.close();
+    });
+});
+
+pcsc.on('error', function(err) {
+    console.log('Error( PCSC ): ', err);
+});
+
+
+
+
