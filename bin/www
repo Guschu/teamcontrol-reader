@@ -107,13 +107,24 @@ appHelper.ifconfig(function(err, out){
 });
 
 myTerminal.authenticate(function(content){
-  if(!myTerminal.isAuthenticated){
-    io.sockets.emit('foo', content);
-  }
+  io.sockets.emit('terminalContent', content);
 });
 
-// RFID
+io.on('connection', function (socket) {
+  content = {
+    feedback: 'feedback wait',
+    text: myTerminal.getMac()
+  }
+  console.log(myTerminal.isAuthenticated());
+  if(myTerminal.isAuthenticated()){
+    content['feedback'] = 'feedback ok';
+    content['text'] = "Bereit zum Scannen";
+  }
+  socket.emit('terminalContent', content);
+});
 
+
+// RFID
 pcsc = require('pcsclite');
 pcsc = pcsc();
 lastRead = false;
@@ -184,7 +195,7 @@ pcsc.on('reader', function(reader) {
                 // ...
                 if(myTerminal.isAuthenticated()){
                   myTerminal.sendTagID(lastRead, function(content){
-                    io.sockets.emit('foo', content);
+                    io.sockets.emit('terminalContent', content);
                   });
                 }
               }

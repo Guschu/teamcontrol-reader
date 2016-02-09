@@ -1,7 +1,7 @@
 var request = require('request');
 
 function Terminal(){
-  this.statusRequestAddress = "";
+  this.statusRequestAddress = "http://127.0.0.1:3000/api/v1/ping";
   this.tagRequestAddress = "";
 
   var macAddress = "";
@@ -9,17 +9,29 @@ function Terminal(){
 
   this.authenticate = function(callback) {
     var that = this;
-    request.post( { url:this.statusRequestAddress, form: {token: that.macAddress} },
-      function(error, httpResponse, body){
+    
+    options = {
+      url: this.statusRequestAddress,
+      headers: {
+        'X-Tc-Token': this.macAddress,
+        'Content-Type': 'application/json'
+      }
+    }
+    content = {
+      feedback: 'feedback wait',
+      text: that.macAddress
+    }
+    request(options, function(error, httpResponse, body){
         if(!error && httpResponse.statusCode == 200){
-          timeout = 10*60*1000;
-          this.authenticated = true;
-          callback(httpResponse); 
-        }else {
+          timeout = 10 * 60 * 1000;
+          that.authenticated = true;
+          content['feedback'] = 'feedback ok';
+          content['text'] = "Bereit zum Scannen";
+        } else {
           timeout = 10 * 1000;
-          this.authenticated = false;
-          callback(that.macAddress);
+          that.authenticated = false;
         }
+        callback(content);
         setTimeout(function(){
           that.authenticate(callback);
         }, timeout);
@@ -40,11 +52,15 @@ function Terminal(){
   };
 
   this.isAuthenticated = function() {
-    return authenticated;
+    return this.authenticated;
   };
 
   this.setMac = function(mac){
     this.macAddress = mac;
+  }
+
+  this.getMac = function(){
+    return this.macAddress;
   }
 }
 
