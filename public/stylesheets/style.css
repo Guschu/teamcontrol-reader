@@ -1,5 +1,14 @@
+html {
+  height: 100%;
+  width: 100%;
+}
+
 body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
   background-color: #333333;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  font-size: 40px;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
 }
 

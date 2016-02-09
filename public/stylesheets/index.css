@@ -11,6 +11,7 @@
 }
 
 .feedback {
+  display: table;
   margin-left: auto;
   margin-right: auto;
   width: 1080px;
@@ -20,8 +21,8 @@
 }
 
 p.content {
-  position: relative;
-  top: 50%;
+  display: table-cell;
+  vertical-align: middle;
 }
 
 .normal {
