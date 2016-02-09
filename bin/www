@@ -96,14 +96,8 @@ var Terminal = require('../models/terminal');
 var myTerminal = new Terminal(io);
 
 appHelper = require('../helpers/application_helper');
-appHelper.ifconfig(function(err, out){
-  mac = out['eth0'];
-  if(!mac){
-    mac = out['en0']['ether'];
-  }else{
-    mac = mac['ether'];
-  }
-  myTerminal.setMac(mac);
+appHelper.getMac(function(err, out){
+  myTerminal.setMac(out);
 });
 
 myTerminal.authenticate(function(content){
