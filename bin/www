@@ -107,9 +107,8 @@ myTerminal.authenticate(function(content){
 io.on('connection', function (socket) {
   content = {
     feedback: 'feedback wait',
-    text: myTerminal.getMac()
+    text: myTerminal.blocksOfTwo(myTerminal.getMac())
   }
-  console.log(myTerminal.isAuthenticated());
   if(myTerminal.isAuthenticated()){
     content['feedback'] = 'feedback ok';
     content['text'] = "Bereit zum Scannen";

@@ -7,6 +7,18 @@ function Terminal(){
   var macAddress = "";
   var authenticated = false;
 
+  this.blocksOfTwo = function(textToSplit) {
+    if(!textToSplit || textToSplit.length === 0){
+      return textToSplit;
+    }
+    var splitted = textToSplit.split('');
+    var merged = [];
+    for( var i = 0; i < splitted.length; i+=2 ){
+      merged.push(splitted[i]+splitted[i+1]);
+    }
+    return merged.join(' ');
+  }
+
   this.authenticate = function(callback) {
     var that = this;
     
@@ -17,10 +29,12 @@ function Terminal(){
         'Content-Type': 'application/json'
       }
     }
+    
     content = {
       feedback: 'feedback wait',
-      text: that.macAddress
+      text: this.blocksOfTwo(this.macAddress)
     }
+
     request(options, function(error, httpResponse, body){
         if(!error && httpResponse.statusCode == 200){
           timeout = 10 * 60 * 1000;
