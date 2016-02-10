@@ -1,8 +1,18 @@
 var request = require('request');
 
 function Terminal(){
-  this.statusRequestAddress = "http://127.0.0.1:3000/api/v1/ping";
-  this.tagRequestAddress = "";
+  this.statusRequestAddress = "http://teamcontrol.apps.software-consultant.net/api/v1/ping";
+  this.tagRequestAddress = "http://teamcontrol.apps.software-consultant.net/api/v1/event";
+  
+  var a = process.env.tcr_statusRequestAddress;
+  if(a != undefined && a.length > 0){
+    this.statusRequestAddress = a;
+  }
+
+  a = process.env.tcr_tagRequestAddress;
+  if(a != undefined && a.length > 0){
+    this.tagRequestAddress = a;
+  }
 
   var macAddress = "";
   var authenticated = false;

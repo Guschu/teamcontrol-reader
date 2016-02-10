@@ -1,3 +1,8 @@
 #!/bin/sh
+
+# Default-Wert zur Statusabfrage des Terminals an den Server wird hiermit überschrieben. 
+# Default ist http://teamcontrol.apps.software-consultant.net/api/v1/ping und /event
+export tcr_tagRequestAddress=http://localhost:3000/api/v1/event
+export tcr_statusRequestAddress=http://localhost:3000/api/v1/ping
 nohup npm start &
 xinit /home/pi/teamcontrol-reader/raspberry_startup/kiosk
