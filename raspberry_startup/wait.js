@@ -1,19 +1,16 @@
-function httpGetAsync(theUrl)
-{
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-            showTerminal(theUrl);
-    }
-    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
-    xmlHttp.send(null);
-}
+loadServer = function(bool){
+  if(bool){
+    window.location.href = "http://localhost:8080";
+  }  
+};
 
-function showTerminal(theUrl)
-{
-  window.location.href = theUrl;
-}
+function imageExists(url, callback) {
+  var img = new Image();
+  img.onload = function() { callback(true); };
+  img.onerror = function() { callback(false); };
+  img.src = url;
+};
 
 window.setInterval(function(){
-  httpGetAsync("http://localhost:8080");
+  imageExists("http://localhost:8080/images/swc_logo.svg", loadServer);
 }, 10*1000);
