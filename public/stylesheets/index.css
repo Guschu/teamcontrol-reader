@@ -26,13 +26,35 @@ p.content {
 }
 
 .footer {
-  position:absolute;
+  position: fixed;
   bottom: 0px;
-  width: 100%
+  display: table;
+  width: 100%;
 }
 
-img.logo {
-  height: 96px;
+.footer > * {
+  display: table-cell;
+  width: 50%;
+  vertical-align: middle;
+}
+
+.footer > .child.left {
+  padding: 30px;
+  padding-right: 15px;
+}
+
+.footer > .child.right {
+  padding: 30px;
+  padding-left: 15px;
+}
+
+.child.right > p {
+  text-align: right;
+  color: white;
+}
+
+object.logo {
+  height: 88px;
 }
 
 .normal {
