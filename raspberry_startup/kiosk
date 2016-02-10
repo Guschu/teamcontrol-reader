@@ -4,5 +4,5 @@ matchbox-window-manager & :
 xset -dpms
 xset s off
 while true; do
-/usr/bin/midori -e Fullscreen -a "wait.html"
+/usr/bin/midori -e Fullscreen -a "file:///home/pi/teamcontrol-reader/raspberry_startup/wait.html"
 done
