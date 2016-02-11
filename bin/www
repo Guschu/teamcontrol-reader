@@ -101,17 +101,19 @@ appHelper.getMac(function(err, out){
 });
 
 myTerminal.authenticate(function(content){
-  io.sockets.emit('terminalContent', content);
+  if(content != null){
+    io.sockets.emit('terminalContent', content);
+  }
 });
 
 io.on('connection', function (socket) {
   content = {
-    feedback: 'feedback wait',
-    text: myTerminal.blocksOfTwo(myTerminal.getMac())
+    status: 'wait',
+    message: myTerminal.blocksOfTwo(myTerminal.getMac())
   }
   if(myTerminal.isAuthenticated()){
-    content['feedback'] = 'feedback ok';
-    content['text'] = "Bereit zum Scannen";
+    content['status'] = 'info';
+    content['message'] = "Bereit zum Scannen";
   }
   socket.emit('terminalContent', content);
 });
@@ -187,7 +189,7 @@ pcsc.on('reader', function(reader) {
                 // Daten an die API schicken
                 // ...
                 if(myTerminal.isAuthenticated()){
-                  myTerminal.sendTagID(lastRead, function(content){
+                  myTerminal.sendTag(lastRead, function(content){
                     io.sockets.emit('terminalContent', content);
                   });
                 }
