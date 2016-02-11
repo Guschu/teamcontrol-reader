@@ -3,7 +3,10 @@ var request = require('request');
 function Terminal(){
   this.statusRequestAddress = "http://teamcontrol.apps.software-consultant.net/api/v1/ping";
   this.tagRequestAddress = "http://teamcontrol.apps.software-consultant.net/api/v1/event";
-  
+  var macAddress = "";
+  var authenticated = false;
+  var timeToShow = 5 * 1000;
+
   var a = process.env.tcr_statusRequestAddress;
   if(a != undefined && a.length > 0){
     this.statusRequestAddress = a;
@@ -14,8 +17,6 @@ function Terminal(){
     this.tagRequestAddress = a;
   }
 
-  var macAddress = "";
-  var authenticated = false;
 
   this.blocksOfTwo = function(textToSplit) {
     if(!textToSplit || textToSplit.length === 0){
@@ -41,21 +42,25 @@ function Terminal(){
     }
     
     content = {
-      feedback: 'feedback wait',
-      text: this.blocksOfTwo(this.macAddress)
+      status: 'wait',
+      message: this.blocksOfTwo(this.macAddress)
     }
-
+    var wasAuthenticated = that.authenticated;
     request(options, function(error, httpResponse, body){
         if(!error && httpResponse.statusCode == 200){
           timeout = 10 * 60 * 1000;
           that.authenticated = true;
-          content['feedback'] = 'feedback ok';
-          content['text'] = "Bereit zum Scannen";
+          content['status'] = 'info';
+          content['message'] = "Bereit zum Scannen";
         } else {
           timeout = 10 * 1000;
           that.authenticated = false;
         }
-        callback(content);
+        if(wasAuthenticated && that.authenticated){
+          callback(null);
+        }else{
+          callback(content);
+        }
         setTimeout(function(){
           that.authenticate(callback);
         }, timeout);
@@ -64,13 +69,37 @@ function Terminal(){
   };
 
   this.sendTag = function(tagID, callback){
-    request.post( {url:this.tagRequestAddress, form: {token: that.macAddress, tag: tagID}},
-      function(error, httpResponse, body){
-        if(!error && httpResponse.statusCode == 200){
+    var that = this;
 
+    options = {
+      url: this.tagRequestAddress,
+      headers: {
+        'X-Tc-Token': this.macAddress,
+        'Content-Type': 'application/json'
+      },
+      form: {
+        id: tagID
+      }
+    }
+
+    content = {
+      status: 'wait',
+      message: this.blocksOfTwo(this.macAddress)
+    }
+
+    request.post(options, function(error, httpResponse, body){
+        if(!error && httpResponse.statusCode != 500){
+          content = httpResponse.body;
         }else {
-
+          if(!error && httpResponse.statusCode == 500)
+          {
+            content = {
+              status: 'error',
+              message: "Ein Fehler ist aufgetreten"
+            }
+          }
         }
+        callback(content);
       }
     );
   };
