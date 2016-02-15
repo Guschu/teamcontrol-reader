@@ -7,6 +7,7 @@ function Terminal(){
   var authenticated = false;
   var timeToShow = 5 * 1000;
 
+  // StandardServer oder eigener?
   var a = process.env.tcr_statusRequestAddress;
   if(a != undefined && a.length > 0){
     this.statusRequestAddress = a;
@@ -17,7 +18,7 @@ function Terminal(){
     this.tagRequestAddress = a;
   }
 
-
+  // Splittet einen String in Blöcke von 2 mit Leerzeichen
   this.blocksOfTwo = function(textToSplit) {
     if(!textToSplit || textToSplit.length === 0){
       return textToSplit;
@@ -30,6 +31,7 @@ function Terminal(){
     return merged.join(' ');
   }
 
+  // Authenticate Request an Server
   this.authenticate = function(callback) {
     var that = this;
     
@@ -45,15 +47,16 @@ function Terminal(){
       status: 'wait',
       message: this.blocksOfTwo(this.macAddress)
     }
+
     var wasAuthenticated = that.authenticated;
     request(options, function(error, httpResponse, body){
         if(!error && httpResponse.statusCode == 200){
-          timeout = 10 * 60 * 1000;
+          //timeout = 10 * 60 * 1000;
           that.authenticated = true;
           content['status'] = 'info';
           content['message'] = "Bereit zum Scannen";
         } else {
-          timeout = 10 * 1000;
+          //timeout = 10 * 1000;
           that.authenticated = false;
         }
         if(wasAuthenticated && that.authenticated){
@@ -61,9 +64,6 @@ function Terminal(){
         }else{
           callback(content);
         }
-        setTimeout(function(){
-          that.authenticate(callback);
-        }, timeout);
       }
     );
   };

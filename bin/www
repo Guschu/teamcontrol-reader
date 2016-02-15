@@ -100,13 +100,25 @@ appHelper.getMac(function(err, out){
   myTerminal.setMac(out);
 });
 
-myTerminal.authenticate(function(content){
-  if(content != null){
-    io.sockets.emit('terminalContent', content);
-  }
-});
 
-io.on('connection', function (socket) {
+// myTerminal.authenticate(function(content){
+//   if(content != null){
+//     io.sockets.emit('terminalContent', content);
+//   }
+// });
+
+startAuthenticate = function(){
+  myTerminal.authenticate(function(content){
+    if(content != null){
+      io.sockets.emit('terminalContent', content);
+      setTimeout(startAuthenticate, 10 * 1000);
+    } else {
+      setTimeout(startAuthenticate, 10 * 60 * 1000);
+    }
+  });
+}
+
+getStatus = function() {
   content = {
     status: 'wait',
     message: myTerminal.blocksOfTwo(myTerminal.getMac())
@@ -115,7 +127,38 @@ io.on('connection', function (socket) {
     content['status'] = 'info';
     content['message'] = "Bereit zum Scannen";
   }
-  socket.emit('terminalContent', content);
+  return content;
+};
+
+
+setStatus = function() {
+  io.sockets.emit('terminalContent', getStatus());
+};
+
+
+var myTimeout;
+
+sendTag = function(tag){
+  myTerminal.sendTag(tag, function(content) {
+    if(content['status']){
+    
+    } else {
+      content = JSON.parse(content);
+    }
+    if(myTimeout != null) {
+      clearTimeout(myTimeout);
+    }
+    io.sockets.emit('terminalContent', content);
+    if(content['status'] === 'error' || content['status'] === 'success') {
+      myTimeout = setTimeout(setStatus, 5 * 1000)
+    }
+  });
+};
+
+startAuthenticate();
+
+io.on('connection', function (socket) {
+  socket.emit('terminalContent', getStatus());
 });
 
 
@@ -189,9 +232,7 @@ pcsc.on('reader', function(reader) {
                 // Daten an die API schicken
                 // ...
                 if(myTerminal.isAuthenticated()){
-                  myTerminal.sendTag(lastRead, function(content){
-                    io.sockets.emit('terminalContent', content);
-                  });
+                  sendTag(lastRead);
                 }
               }
             });
