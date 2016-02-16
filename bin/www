@@ -100,13 +100,6 @@ appHelper.getMac(function(err, out){
   myTerminal.setMac(out);
 });
 
-
-// myTerminal.authenticate(function(content){
-//   if(content != null){
-//     io.sockets.emit('terminalContent', content);
-//   }
-// });
-
 startAuthenticate = function(){
   myTerminal.authenticate(function(content){
     if(content != null){
@@ -118,6 +111,9 @@ startAuthenticate = function(){
   });
 }
 
+/**
+  *  Aktuellen Status des Terminals als Hash
+ */
 getStatus = function() {
   content = {
     status: 'wait',
@@ -130,37 +126,39 @@ getStatus = function() {
   return content;
 };
 
-
+// Leitet den aktuellen Status an den Client weiter
 setStatus = function() {
   io.sockets.emit('terminalContent', getStatus());
 };
 
 
-var myTimeout;
+var displayTimeout;
 
 sendTag = function(tag){
   myTerminal.sendTag(tag, function(content) {
     if(content['status']){
-    
     } else {
       content = JSON.parse(content);
     }
+
     if(myTimeout != null) {
-      clearTimeout(myTimeout);
+      clearTimeout(displayTimeout);
     }
+
     io.sockets.emit('terminalContent', content);
     if(content['status'] === 'error' || content['status'] === 'success') {
-      myTimeout = setTimeout(setStatus, 5 * 1000)
+      displayTimeout = setTimeout(setStatus, 5 * 1000)
+    } else if(content['status'] === 'wait') {
+      myTerminal.startAuthenticate();
     }
   });
 };
-
-startAuthenticate();
 
 io.on('connection', function (socket) {
   socket.emit('terminalContent', getStatus());
 });
 
+startAuthenticate();
 
 // RFID
 pcsc = require('pcsclite');
@@ -228,9 +226,9 @@ pcsc.on('reader', function(reader) {
                 */
                 // Hier sind die Daten des Readers
                 lastRead = data.readUIntBE(0, 7, true).toString(16);
-
+                lastRead = '00000000000000'.substr(lastRead.length) + lastRead;
+                
                 // Daten an die API schicken
-                // ...
                 if(myTerminal.isAuthenticated()){
                   sendTag(lastRead);
                 }

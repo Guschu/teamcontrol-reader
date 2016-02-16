@@ -8,12 +8,12 @@ function Terminal(){
   var timeToShow = 5 * 1000;
 
   // StandardServer oder eigener?
-  var a = process.env.tcr_statusRequestAddress;
+  var a = process.env.tcr_ping;
   if(a != undefined && a.length > 0){
     this.statusRequestAddress = a;
   }
 
-  a = process.env.tcr_tagRequestAddress;
+  a = process.env.tcr_event;
   if(a != undefined && a.length > 0){
     this.tagRequestAddress = a;
   }
@@ -51,12 +51,10 @@ function Terminal(){
     var wasAuthenticated = that.authenticated;
     request(options, function(error, httpResponse, body){
         if(!error && httpResponse.statusCode == 200){
-          //timeout = 10 * 60 * 1000;
           that.authenticated = true;
           content['status'] = 'info';
           content['message'] = "Bereit zum Scannen";
         } else {
-          //timeout = 10 * 1000;
           that.authenticated = false;
         }
         if(wasAuthenticated && that.authenticated){
@@ -86,18 +84,13 @@ function Terminal(){
       status: 'wait',
       message: this.blocksOfTwo(this.macAddress)
     }
-
+    // 401 = Nicht auth, 404 = Kein Rennen, 406 = Keine Aktivierung
     request.post(options, function(error, httpResponse, body){
-        if(!error && httpResponse.statusCode != 500){
+        if(!error && httpResponse.statusCode != 401){
           content = httpResponse.body;
         }else {
-          if(!error && httpResponse.statusCode == 500)
-          {
-            content = {
-              status: 'error',
-              message: "Ein Fehler ist aufgetreten"
-            }
-          }
+          content['status'] = 'wait';
+          content['message'] = that.blocksOfTwo(that.macAddress);
         }
         callback(content);
       }
