@@ -38,7 +38,7 @@ function Terminal(){
     options = {
       url: this.statusRequestAddress,
       headers: {
-        'X-Tc-Token': this.macAddress,
+        'X-Tc-Token': that.macAddress,
         'Content-Type': 'application/json'
       }
     }

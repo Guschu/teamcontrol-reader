@@ -141,7 +141,7 @@ sendTag = function(tag){
       content = JSON.parse(content);
     }
 
-    if(myTimeout != null) {
+    if(displayTimeout != null) {
       clearTimeout(displayTimeout);
     }
 
