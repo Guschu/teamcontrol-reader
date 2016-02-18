@@ -3,5 +3,6 @@
 # Default-Wert zur Statusabfrage des Terminals an den Server wird hiermit überschrieben. 
 # Default ist http://teamcontrol.apps.software-consultant.net
 export TCR_HOST=http://10.99.99.104:3000
+cd /home/pi/teamcontrol-reader
 nohup npm start &
 xinit /home/pi/teamcontrol-reader/raspberry_startup/kiosk
