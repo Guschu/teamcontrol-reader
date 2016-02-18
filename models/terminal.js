@@ -103,6 +103,7 @@ function Terminal(){
         }else {
           content['status'] = 'wait';
           content['message'] = that.blocksOfTwo(that.macAddress);
+          that.authenticated = false;
         }
         callback(content);
       }

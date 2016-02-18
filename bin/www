@@ -148,7 +148,7 @@ sendTag = function(tag){
     if(content['status'] === 'error' || content['status'] === 'success') {
       displayTimeout = setTimeout(setStatus, 5 * 1000)
     } else if(content['status'] === 'wait') {
-      myTerminal.startAuthenticate();
+      startAuthenticate();
     }
   });
 };
