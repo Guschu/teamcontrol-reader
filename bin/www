@@ -7,7 +7,6 @@
 var app = require('../app');
 var debug = require('debug')('teamcontrol-reader:server');
 var http = require('http');
-
 /**
  * Get port from environment and store in Express.
  */
@@ -121,7 +120,7 @@ getStatus = function() {
   }
   if(myTerminal.isAuthenticated()){
     content['status'] = 'info';
-    content['message'] = "Bereit zum Scannen";
+    content['message'] = "Bereit";
   }
   return content;
 };

@@ -13,7 +13,7 @@ function Terminal(){
   if(a != undefined && a.length > 0){
     Terminal.host = a;
   }
-
+  
   this.statusRequestAddress = Terminal.host + this.statusRequestAddress;
   this.tagRequestAddress = Terminal.host + this.tagRequestAddress;
 
@@ -33,7 +33,7 @@ function Terminal(){
   // Authenticate Request an Server
   this.authenticate = function(callback) {
     var that = this;
-    
+
     options = {
       url: this.statusRequestAddress,
       headers: {
@@ -52,7 +52,7 @@ function Terminal(){
         if(!error && httpResponse.statusCode == 200){
           that.authenticated = true;
           content['status'] = 'info';
-          content['message'] = "Bereit zum Scannen";
+          content['message'] = "Bereit";
         } else {
           that.authenticated = false;
         }
@@ -83,6 +83,22 @@ function Terminal(){
       status: 'wait',
       message: this.blocksOfTwo(this.macAddress)
     }
+    console.log(lastscans);
+    // 15 Sekunden Timeout
+    if(lastscan = lastscans[tagID]) {
+      difference = new Date(Date.now() - lastscan);
+      console.log("Check difference");
+      if( difference.getSeconds() <= 15 ) {
+        console.log("Diff <= 15");
+        content['status'] = 'error'
+        content['message'] = 'Wait'
+        callback(content);
+        return;
+      }
+    }
+    console.log("Darunter");
+    lastscans[tagID] = Date.now();
+
     // 401 = Nicht auth, 404 = Kein Rennen, 406 = Keine Aktivierung
     request.post(options, function(error, httpResponse, body){
         if(!error && httpResponse.statusCode != 401){
