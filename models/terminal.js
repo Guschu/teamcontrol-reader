@@ -83,20 +83,17 @@ function Terminal(){
       status: 'wait',
       message: this.blocksOfTwo(this.macAddress)
     }
-    console.log(lastscans);
+
     // 15 Sekunden Timeout
     if(lastscan = lastscans[tagID]) {
       difference = new Date(Date.now() - lastscan);
-      console.log("Check difference");
       if( difference.getSeconds() <= 15 ) {
-        console.log("Diff <= 15");
         content['status'] = 'error'
         content['message'] = 'Wait'
         callback(content);
         return;
       }
     }
-    console.log("Darunter");
     lastscans[tagID] = Date.now();
 
     // 401 = Nicht auth, 404 = Kein Rennen, 406 = Keine Aktivierung
