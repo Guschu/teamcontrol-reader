@@ -10,6 +10,10 @@
   vertical-align: middle;
 }
 
+.content {
+  
+}
+
 #status {
   display: table;
   width: 100%;
@@ -19,7 +23,7 @@
   text-align: center;
 }
 
-p#message {
+#message {
   font-size: 150px;
   display: table-cell;
   vertical-align: middle;
@@ -41,37 +45,6 @@ p#message {
   background: green;
 }
 
-/*
-.footer {
-  position: fixed;
-  bottom: 0px;
-  display: table;
-  width: 100%;
+#logo {
+  height: 100px;
 }
-
-.footer > * {
-  display: table-cell;
-  width: 50%;
-  vertical-align: middle;
-}
-
-.footer > .child.left {
-  padding: 30px;
-  padding-right: 15px;
-}
-
-.footer > .child.right {
-  padding: 30px;
-  padding-left: 15px;
-}
-
-.child.right > p {
-  text-align: right;
-  color: white;
-}
-
-object.logo {
-  height: 88px;
-}
-*/
-

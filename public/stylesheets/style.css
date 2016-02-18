@@ -1,14 +1,80 @@
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: url(/fonts/OpenSans-Regular.ttf) format('ttf');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 600;
+  src: url(/fonts/OpenSans-Bold.ttf) format('ttf');
+}
+
 html {
+  position: relative;
   height: 100%;
-  width: 100%;
 }
 
 body {
-  margin: 0;
-  padding: 0;
   height: 100%;
-  background-color: #333333;
+  margin: 0 0 150px 0;
+  background-color: #222222;
   font-size: 40px;
-  font-family: 'Open Sans', monospace;
+  font-weight: 400;
+  font-family: 'Open Sans', Helvetica, Arial, sans-serif;
 }
 
+footer {
+  background-color: #333333;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 122px;
+  width: 100%;
+  color: #a0a0a0;
+}
+
+footer img {
+  height: 72px;
+  margin-right: 20px;
+  float: left;
+}
+
+footer p {
+  line-height: 72px;
+  font-size: 32px;
+  margin: 0;
+}
+
+.middle {
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.content {
+  padding: 25px;
+}
+
+#status {
+  font-size: 150px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.error {
+  background: red;
+}
+
+.wait {
+  background: orange;
+}
+
+.info {
+  background: gray;
+}
+
+.success {
+  background: green;
+}
