@@ -7,5 +7,5 @@ socket.on("terminalContent", function(content) {
 
 socket.on('disconnect', function() {
   document.getElementById('status').className = 'error';
-  document.getElementById('status').innerHTML = 'Node-Server inaktiv.';  
+  document.getElementById('status').innerHTML = 'Bitte neu starten';  
 });
