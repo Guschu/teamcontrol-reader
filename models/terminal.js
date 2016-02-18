@@ -44,7 +44,8 @@ function Terminal(){
     
     content = {
       status: 'wait',
-      message: this.blocksOfTwo(this.macAddress)
+      message: this.blocksOfTwo(this.macAddress),
+      title: 'Station in TeamControl registrieren'
     }
 
     var wasAuthenticated = that.authenticated;
@@ -53,6 +54,7 @@ function Terminal(){
           that.authenticated = true;
           content['status'] = 'info';
           content['message'] = "Bereit";
+          content['title'] = ''
         } else {
           that.authenticated = false;
         }
@@ -81,19 +83,24 @@ function Terminal(){
 
     content = {
       status: 'wait',
-      message: this.blocksOfTwo(this.macAddress)
+      message: this.blocksOfTwo(this.macAddress),
+      title: 'Station in TeamControl registrieren'
     }
 
     // 15 Sekunden Timeout
     if(lastscan = lastscans[tagID]) {
       difference = new Date(Date.now() - lastscan);
+      console.log("Difference :"+difference.getSeconds());
       if( difference.getSeconds() <= 15 ) {
         content['status'] = 'error'
-        content['message'] = 'Wait'
+        content['message'] = 'Bitte warten'
+        content['title'] = 'Zu häufig gescannt - Bitte 15 Sekunden warten'
+        lastscans[tagID] = Date.now();
         callback(content);
         return;
       }
     }
+    console.log('lulu');
     lastscans[tagID] = Date.now();
 
     // 401 = Nicht auth, 404 = Kein Rennen, 406 = Keine Aktivierung
@@ -103,6 +110,7 @@ function Terminal(){
         }else {
           content['status'] = 'wait';
           content['message'] = that.blocksOfTwo(that.macAddress);
+          content['title'] = 'Station in TeamControl registrieren'
           that.authenticated = false;
         }
         callback(content);

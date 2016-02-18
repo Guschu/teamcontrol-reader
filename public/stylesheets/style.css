@@ -65,6 +65,10 @@ footer p {
   text-align: center;
 }
 
+#title {
+  text-align: center;
+}
+
 .error {
   background: red;
 }

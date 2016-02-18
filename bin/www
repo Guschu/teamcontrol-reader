@@ -116,11 +116,13 @@ startAuthenticate = function(){
 getStatus = function() {
   content = {
     status: 'wait',
-    message: myTerminal.blocksOfTwo(myTerminal.getMac())
+    message: myTerminal.blocksOfTwo(myTerminal.getMac()),
+    title: 'Station in TeamControl registrieren'
   }
   if(myTerminal.isAuthenticated()){
     content['status'] = 'info';
     content['message'] = "Bereit";
+    content['title'] = '';
   }
   return content;
 };
