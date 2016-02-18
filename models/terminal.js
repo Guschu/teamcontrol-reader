@@ -1,22 +1,21 @@
 var request = require('request');
 
 function Terminal(){
-  this.statusRequestAddress = "http://teamcontrol.apps.software-consultant.net/api/v1/ping";
-  this.tagRequestAddress = "http://teamcontrol.apps.software-consultant.net/api/v1/event";
+  Terminal.host = "http://teamcontrol.apps.software-consultant.net"
+  this.statusRequestAddress = "/api/v1/ping";
+  this.tagRequestAddress = "/api/v1/event";
   var macAddress = "";
   var authenticated = false;
   var timeToShow = 5 * 1000;
-
+  var lastscans = [];
   // StandardServer oder eigener?
-  var a = process.env.tcr_ping;
+  var a = process.env.TCR_HOST;
   if(a != undefined && a.length > 0){
-    this.statusRequestAddress = a;
+    Terminal.host = a;
   }
 
-  a = process.env.tcr_event;
-  if(a != undefined && a.length > 0){
-    this.tagRequestAddress = a;
-  }
+  this.statusRequestAddress = Terminal.host + this.statusRequestAddress;
+  this.tagRequestAddress = Terminal.host + this.tagRequestAddress;
 
   // Splittet einen String in Blöcke von 2 mit Leerzeichen
   this.blocksOfTwo = function(textToSplit) {
