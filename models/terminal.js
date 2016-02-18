@@ -88,7 +88,8 @@ function Terminal(){
     }
 
     // 15 Sekunden Timeout
-    if(lastscan = lastscans[tagID]) {
+    lastscan = lastscans[tagID]
+    if(lastscan != null) {
       difference = new Date(Date.now() - lastscan);
       console.log("Difference :"+difference.getSeconds());
       if( difference.getSeconds() <= 15 ) {
