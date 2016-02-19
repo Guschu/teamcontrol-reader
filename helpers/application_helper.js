@@ -25,7 +25,7 @@ ApplicationHelper.prototype.getMac = function(callback){
               }, {});
               return o;
               }, {});
-          callback(null, results['en0']['ether'].split(':').join(''));
+          callback(null, results['en0']['ether'].split(':').join('').toUpperCase());
         }
       });
       break;
@@ -35,7 +35,7 @@ ApplicationHelper.prototype.getMac = function(callback){
           callback(err, stderr);
         } else {
           matches = stdout.match(/(([A-Fa-f0-9]{2}[:]){5}[A-Fa-f0-9]{2}[,]?)/);
-          callback(null, matches[0].split(':').join(''));
+          callback(null, matches[0].split(':').join('').toUpperCase());
         }
       });
   }
