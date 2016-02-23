@@ -1,7 +1,7 @@
 var request = require('request');
 
 function Terminal(){
-  Terminal.host = "http://teamcontrol.apps.software-consultant.net"
+  Terminal.host = "https://teamcontrol.apps.software-consultant.net"
   this.statusRequestAddress = "/api/v1/ping";
   this.tagRequestAddress = "/api/v1/event";
   var macAddress = "";
