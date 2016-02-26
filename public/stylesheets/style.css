@@ -2,13 +2,13 @@
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 400;
-  src: url(/fonts/OpenSans-Regular.ttf) format('ttf');
+  src: url("/fonts/OpenSans-Regular.ttf") format('ttf');
 }
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 600;
-  src: url(/fonts/OpenSans-Bold.ttf) format('ttf');
+  src: url("/fonts/OpenSans-ExtraBold.ttf") format('ttf');
 }
 
 html {
@@ -19,20 +19,21 @@ html {
 body {
   height: 100%;
   margin: 0 0 150px 0;
-  background-color: #222222;
+  background-color: #1e1e1e;
   font-size: 40px;
+  line-height: 60px;
   font-weight: 400;
   font-family: 'Open Sans', Helvetica, Arial, sans-serif;
 }
 
 footer {
-  background-color: #333333;
+  background-color: rgba(255, 255, 255, 0.2);
   position: absolute;
   left: 0;
   bottom: 0;
   height: 122px;
   width: 100%;
-  color: #a0a0a0;
+  color: #aaaaaa;
 }
 
 footer img {
@@ -59,14 +60,19 @@ footer p {
   padding: 25px;
 }
 
+#status, #title {
+  text-align: center;
+  padding: 25px 50px;
+}
+
 #status {
   font-size: 150px;
-  font-weight: 600;
-  text-align: center;
+  line-height: 225px;
+  font-weight: 700;
 }
 
 #title {
-  text-align: center;
+  margin-top: 3px;
 }
 
 .error {
@@ -83,4 +89,8 @@ footer p {
 
 .success {
   background: green;
+}
+
+.right {
+  float: right;
 }
