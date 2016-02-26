@@ -1,3 +1,5 @@
+@import url(https://fonts.googleapis.com/css?family=Asap:400,700);
+
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
@@ -23,7 +25,7 @@ body {
   font-size: 40px;
   line-height: 60px;
   font-weight: 400;
-  font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+  font-family: 'Asap', 'Open Sans', Helvetica, Arial, sans-serif;
 }
 
 footer {
@@ -77,6 +79,7 @@ footer p {
 
 .error {
   background: red;
+  color: white;
 }
 
 .wait {

@@ -1,7 +1,7 @@
 var request = require('request');
 
 function Terminal(){
-  Terminal.host = "https://r4h.teamcontrol.de"
+  Terminal.host = "https://r4h.teamcontrol.de";
   this.statusRequestAddress = "/api/v1/ping";
   this.tagRequestAddress = "/api/v1/event";
   var macAddress = "";
@@ -13,7 +13,7 @@ function Terminal(){
   if(a != undefined && a.length > 0){
     Terminal.host = a;
   }
-  
+
   this.statusRequestAddress = Terminal.host + this.statusRequestAddress;
   this.tagRequestAddress = Terminal.host + this.tagRequestAddress;
 
@@ -41,7 +41,7 @@ function Terminal(){
         'Content-Type': 'application/json'
       }
     }
-    
+
     content = {
       status: 'wait',
       message: this.blocksOfTwo(this.macAddress),
