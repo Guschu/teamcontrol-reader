@@ -7,7 +7,7 @@ function Terminal(){
   var macAddress = "";
   var authenticated = false;
   var timeToShow = 5 * 1000;
-  var lastscans = [];
+  var lastscans = new Object();
   // StandardServer oder eigener?
   var a = process.env.TCR_HOST;
   if(a != undefined && a.length > 0){
@@ -92,10 +92,10 @@ function Terminal(){
     if(lastscan != null) {
       difference = new Date(Date.now() - lastscan);
       console.log("Difference :"+difference.getSeconds());
-      if( difference.getSeconds() <= 15 ) {
+      if( difference.getSeconds() <= 5 ) {
         content['status'] = 'error'
         content['message'] = 'Bitte warten'
-        content['title'] = 'Zu häufig gescannt - Bitte 15 Sekunden warten'
+        content['title'] = 'Zu häufig gescannt - Bitte 5 Sekunden warten'
         lastscans[tagID] = Date.now();
         callback(content);
         return;
