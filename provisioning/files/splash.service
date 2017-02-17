@@ -1,0 +1,13 @@
+[Unit]
+Description=Display splash screen
+DefaultDependencies=no
+After=local-fs.target
+Before=base.target
+
+[Service]
+type=oneshot
+ExecStart=/bin/sh -c "/usr/bin/fbi -T 1 -noverbose -a /etc/splash.png"
+RemainAfterExit=yes
+
+[Install]
+WantedBy=getty.target

@@ -1,0 +1,58 @@
+---
+- name: Set locale de_DE.UTF-8
+  locale_gen:
+    name: de_DE.UTF-8
+    state: present
+- name: Set timezone Europe/Berlin
+  timezone:
+    name: Europe/Berlin
+
+- name: Disable overscan, unnecessary for HDMI
+  lineinfile:
+    dest: /boot/config.txt
+    regexp: '^#disable_overscan='
+    line: 'disable_overscan=1'
+- name: Silence boot by sending logs to different tty
+  replace:
+    dest: /boot/cmdline.txt
+    regexp: 'console=tty1'
+    replace: 'console=tty9'
+
+- name: Copy custom splash image
+  copy:
+    src: splash.png
+    dest: /etc/splash.png
+    owner: root
+    group: root
+    mode: 0644
+- name: Create splash service for systemd
+  copy:
+    src: splash.service
+    dest: /lib/systemd/system/splash.service
+    owner: root
+    group: root
+    mode: 0644
+- name: Enable splash service
+  systemd:
+    name: splash
+    enabled: yes
+    masked: no
+
+- apt: name=aptitude state=present
+- name: Upgrade APT packages
+  apt: >
+    upgrade=yes
+    update_cache=yes
+    cache_valid_time=3600
+- name: Install required packages
+  apt: "name={{ item }} state=present"
+  with_items:
+    - fbi
+    - midori
+    - matchbox
+- name: APT auto remove unneeded packages
+  command: apt-get -y autoremove warn=no
+  changed_when: False
+- name: APT cleanup
+  command: apt-get -y clean warn=no
+  changed_when: False

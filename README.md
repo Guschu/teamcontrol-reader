@@ -12,4 +12,11 @@ Der __PI__ benötigt Internet, das NFC-Lesegerät [ACR1251U USB NFC Reader II](h
 Zurzeit ist die Adresse der API auf die IP-Adresse von Davids Mac gesetzt.
 Um dies zu ändern müssen in der Datei `start` die export-Zeilen auskommentiert werden um den Default zu erreichen.
 
-Um Änderungen auf dem PI zu machen wird das git-Repo gepullt. Dazu muss man sich per ssh mit dem PI verbinden und im Ordner `home/pi/teamcontrol-reader` ein `git pull` durchführen. Im Anschluss muss die Datei `start` wieder ausführbar gemacht werden `sudo chmod +x /home/pi/teamcontrol-reader/start`. 
+Um Änderungen auf dem PI zu machen wird das git-Repo gepullt. Dazu muss man sich per ssh mit dem PI verbinden und im Ordner `home/pi/teamcontrol-reader` ein `git pull` durchführen. Im Anschluss muss die Datei `start` wieder ausführbar gemacht werden `sudo chmod +x /home/pi/teamcontrol-reader/start`.
+
+## Neue Installation
+
+Der folgende Befehl initialisiert alle Raspbery PI die in der Datei `provisioning/inventory` namentlich genannt sind.
+
+    cd provisioning && ansible-playbook -i inventory playbook.yml
+
