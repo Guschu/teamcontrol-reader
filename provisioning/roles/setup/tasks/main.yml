@@ -48,8 +48,6 @@
   apt: "name={{ item }} state=present"
   with_items:
     - fbi
-    - midori
-    - matchbox
 - name: APT auto remove unneeded packages
   command: apt-get -y autoremove warn=no
   changed_when: False

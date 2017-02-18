@@ -1,0 +1,31 @@
+---
+- name: Install required packages
+  apt: "name={{ item }} state=present"
+  become: true
+  with_items:
+    - git
+    - npm
+    - midori
+    - matchbox
+
+- name: Copy deploy keys
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0600"
+  with_items:
+    - { src: 'gitlab_rsa', dest: '.ssh/gitlab_rsa' }
+    - { src: 'gitlab_rsa.pub', dest: '.ssh/gitlab_rsa.pub' }
+
+- name: Clone application from git
+  git:
+    repo: ssh://git@gitlab.software-consultant.net/swc/teamcontrol-reader.git
+    dest: /home/pi/teamcontrol-reader
+    key_file: .ssh/gitlab_rsa
+    accept_hostkey: true
+    force: true
+
+# - name: Create teamcontrol service
+#   command: 'echo 1'
+# - name: Enable teamcontrol service
+#   command: 'echo 1'
