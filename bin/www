@@ -174,7 +174,7 @@ sendTagRequest = function(tagID, macAsString){
 
 authenticationRequest = function(macAsString) {
   request_options = {
-    url: eventEndpoint,
+    url: pingEndpoint,
     headers: {
       'X-Tc-Token': self.myTerminal.getMacAddress(),
       'Content-Type': 'application/json'
