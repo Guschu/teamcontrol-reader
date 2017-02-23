@@ -106,7 +106,7 @@ visualizeStatusInfo = function(statusInfo) {
 sendTagRequest = function(tagID, macAsString){
   that = this
   request_options = {
-    url: 'https://r4h.teamcontrol.de/api/v1/event', // TODO WOHER?
+    url: 'http://10.99.99.104:3000/api/v1/event', // TODO WOHER? https://r4h.teamcontrol.de
     headers: {
       'X-Tc-Token': self.myTerminal.getMacAddress(),
       'Content-Type': 'application/json'
@@ -161,7 +161,7 @@ sendTagRequest = function(tagID, macAsString){
 
 authenticationRequest = function(macAsString) {
   request_options = {
-    url: 'https://r4h.teamcontrol.de/api/v1/ping', // TODO WOHER?
+    url: 'http://10.99.99.104:3000/api/v1/ping', // TODO WOHER? https://r4h.teamcontrol.de
     headers: {
       'X-Tc-Token': self.myTerminal.getMacAddress(),
       'Content-Type': 'application/json'
