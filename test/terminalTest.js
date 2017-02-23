@@ -5,7 +5,7 @@ describe('Terminal', function() {
   describe('On empty Initialization', function() {
     it('should be initialized with undefined MAC-Address', function() {
       t = new Terminal()
-      expect(t.getMacAddress()).to.be.undefined
+      expect(t.getMacAddress()).to.eql('')
       expect(t.getSplittedMacAddress()).to.be.undefined
     })
   })
