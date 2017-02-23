@@ -173,7 +173,6 @@ sendTagRequest = function(tagID, macAsString){
 }
 
 authenticationRequest = function(macAsString) {
-  console.log(eventEndpoint)
   request_options = {
     url: self.eventEndpoint,
     headers: {
