@@ -1,259 +1,230 @@
 #!/usr/bin/env node
-
 /**
  * Module dependencies.
  */
-
-var app = require('../app');
-var debug = require('debug')('teamcontrol-reader:server');
-var http = require('http');
+var app = require('../app')
+var debug = require('debug')('teamcontrol-reader:server')
+var http = require('http')
+var Terminal = require('../models/terminal')
+var request = require('request')
+appHelper = require('../helpers/application_helper')
+var theReaderClass = require('../models/reader/rfidReader')
+var StatusInfo = require('../models/statusInfo')
 /**
  * Get port from environment and store in Express.
  */
-
-var port = normalizePort(process.env.PORT || '8080');
-app.set('port', port);
-
+var port = normalizePort(process.env.PORT || '4000')
+app.set('port', port)
 /**
  * Create HTTP server.
  */
-
-var server = http.createServer(app);
-
+var server = http.createServer(app)
 /**
  * Listen on provided port, on all network interfaces.
  */
-
-var io = require('socket.io').listen(server);
-
-server.listen(port, '127.0.0.1');
-server.on('error', onError);
-server.on('listening', onListening);
-
+var io = require('socket.io').listen(server)
+server.listen(port, '0.0.0.0')
+server.on('error', onError)
+server.on('listening', onListening)
 /**
  * Normalize a port into a number, string, or false.
  */
-
 function normalizePort(val) {
-  var port = parseInt(val, 10);
-
+  var port = parseInt(val, 10)
   if (isNaN(port)) {
     // named pipe
-    return val;
+    return val
   }
-
   if (port >= 0) {
     // port number
-    return port;
+    return port
   }
-
-  return false;
+  return false
 }
-
 /**
  * Event listener for HTTP server "error" event.
  */
-
 function onError(error) {
   if (error.syscall !== 'listen') {
-    throw error;
+    throw error
   }
-
-  var bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
-
+  var bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
-      process.exit(1);
-      break;
+      console.error(bind + ' requires elevated privileges')
+      process.exit(1)
+      break
     case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
-      process.exit(1);
-      break;
+      console.error(bind + ' is already in use')
+      process.exit(1)
+      break
     default:
-      throw error;
+      throw error
   }
 }
-
 /**
  * Event listener for HTTP server "listening" event.
  */
-
 function onListening() {
-  var addr = server.address();
-  var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
-  debug('Listening on ' + bind);
+  var addr = server.address()
+  var bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
+  debug('Listening on ' + bind)
 }
 
+this.myTerminal = new Terminal()
+var displayTimeout
+var pingTimeout
+var readerConnectTimeOut
+var self = this
+var lastConnectedClient
+var displayTimeOutRunning = false
+// Kommt ein neuer Client bekommt er den Aktuellen Status zu sehen
+io.on('connection', function (socket) {
+  if(self.myTerminal != null) {
+    lastConnectedClient = socket
+    socket.emit('terminalContent', self.myTerminal.generate_connection_info())
+  }
+})
 
-var Terminal = require('../models/terminal');
-var myTerminal = new Terminal(io);
+visualizeScanInfo = function(scanInfo){
 
-appHelper = require('../helpers/application_helper');
-appHelper.getMac(function(err, out){
-  myTerminal.setMac(out);
-});
-
-startAuthenticate = function(){
-  myTerminal.authenticate(function(content){
-    if(content != null){
-      io.sockets.emit('terminalContent', content);
-      setTimeout(startAuthenticate, 10 * 1000);
-    } else {
-      setTimeout(startAuthenticate, 10 * 60 * 1000);
-    }
-  });
 }
-
-/**
-  *  Aktuellen Status des Terminals als Hash
- */
-getStatus = function() {
-  content = {
-    status: 'wait',
-    message: myTerminal.blocksOfTwo(myTerminal.getMac()),
-    title: 'Station in TeamControl registrieren'
-  }
-  if(myTerminal.isAuthenticated()){
-    content['status'] = 'info';
-    content['message'] = "Bereit";
-    content['title'] = '';
-  }
-  return content;
-};
 
 // Leitet den aktuellen Status an den Client weiter
-setStatus = function() {
-  io.sockets.emit('terminalContent', getStatus());
-};
+visualizeStatusInfo = function(statusInfo) {
+  clearTimeout(self.pingTimeout)
+  if(lastConnectedClient != undefined){
+    lastConnectedClient.emit('terminalContent', statusInfo)  
+  }
+  self.pingTimeout = setTimeout(function(){
+    authenticationRequest(self.myTerminal.getMacAddress())
+  }, 5 * 1000)
+}
 
 
-var displayTimeout;
+sendTagRequest = function(tagID, macAsString){
+  that = this
+  request_options = {
+    url: 'http://10.99.99.104:3000/api/v1/event', // TODO WOHER?
+    headers: {
+      'X-Tc-Token': self.myTerminal.getMacAddress(),
+      'Content-Type': 'application/json'
+    },
+    form: {
+      id: tagID
+    }
+  }
 
-sendTag = function(tag){
-  myTerminal.sendTag(tag, function(content) {
-    if(content['status']){
+  request.post(request_options, function(error, httpResponse, body){
+    content = new StatusInfo()
+
+    if(error){
+      // Fehler bei der Übertragung. Selbes verhalten wie bei "default"?
+      self.myTerminal.connectionError(error)
+      content = self.myTerminal.generate_connection_info()
+      return
     } else {
-      content = JSON.parse(content);
-    }
-
-    if(displayTimeout != null) {
-      clearTimeout(displayTimeout);
-    }
-
-    io.sockets.emit('terminalContent', content);
-    if(content['status'] === 'error' || content['status'] === 'success') {
-      displayTimeout = setTimeout(setStatus, 5 * 1000)
-    } else if(content['status'] === 'wait') {
-      startAuthenticate();
-    }
-  });
-};
-
-io.on('connection', function (socket) {
-  socket.emit('terminalContent', getStatus());
-});
-
-startAuthenticate();
-
-// RFID
-pcsc = require('pcsclite');
-pcsc = pcsc();
-lastRead = false;
-
-// PC/SC interface.
-pcsc.on('reader', function(reader) {
-  // Wenn Reader angeschlossen
-
-  reader.on('error', function(err) {
-    console.log('Error(', reader.name, '):', err.message);
-  });
-
-  reader.on('status', function(status) {
-
-    // Check changes.
-    var changes = this.state ^ status.state;
-    if (changes) {
-        
-      // Card removed.
-      if ((changes & this.SCARD_STATE_EMPTY) && (status.state & this.SCARD_STATE_EMPTY)) {
-        
-        reader.disconnect(reader.SCARD_LEAVE_CARD, function(err) {
-          if (err) {
-            console.log('Error(', reader.name, '):', err);
+      if(httpResponse.statusCode >= 200 && httpResponse.statusCode < 300){
+        content = httpResponse.body
+          if(content['status']) {
+          } else {
+            content = JSON.parse(content)
           }
-          else {
-            console.log('Status(', reader.name, '): Disconnected');
-          }
-        });
-      }
-
-      // Card inserted.
-      else if ((changes & this.SCARD_STATE_PRESENT) && (status.state & this.SCARD_STATE_PRESENT)) {
-        
-        reader.connect({ share_mode : this.SCARD_SHARE_SHARED }, function(err, protocol) {
-          if (err) {
-            console.log('Error(', reader.name, '):', err);
-          }
-          else {
-            /* 
-              Read card UID: [0xFF, 0xCA, 0x00, 0x00, 0x00]
-
-              UID is specified in the ISO 14443 T=CL transport protocol while APDU's are specified in the ISO 7816 application layer protocol.
-              "Get Data Command" is defined in PCSC 3 v2. If your driver is PCSC v2 compliant, you can get UID using it:
-              Class = 0xFF
-              INS = 0xCA
-              P1 = 0x00
-              P2 = 0x00
-              Le = 0x00 (return full length: ISO14443A single 4 bytes, double 7 bytes, triple 10 bytes, for ISO14443B 4 bytes PUPI, for 15693 8 bytes UID)
-              
-              Expected response: Data+SW1SW2
-            */                        
-            var message = new Buffer([0xFF, 0xCA, 0x00, 0x00, 0x00]);
-
-            reader.transmit(message, 40, protocol, function(err, data) {
-              if (err) {
-                console.log('Error(', reader.name, '):', err);
-              }
-              else {
-                /*
-                  buf.readUIntLE(offset, byteLength[, noAssert])
-                  Set noAssert to true to skip validation of value and offset. Defaults to false.
-                */
-                // Hier sind die Daten des Readers
-                lastRead = data.readUIntBE(0, 7, true).toString(16);
-                lastRead = '00000000000000'.substr(lastRead.length) + lastRead;
-                
-                // Daten an die API schicken
-                if(myTerminal.isAuthenticated()){
-                  sendTag(lastRead);
-                }
-              }
-            });
-          }
-        });
+      }else{
+        switch(httpResponse.statusCode){
+          case 406: // tagID ist ungültig
+          case 500: // tagID ist auch hier ungültig o.O?
+          case 404: // Kein aktives Rennen
+            content = httpResponse.body
+            if(content['status']) {
+            } else {
+              content = JSON.parse(content)
+            }
+            break
+          case 401: // Terminal nicht bekannt
+            self.myTerminal.setAuthenticated(false)
+            content = self.myTerminal.generate_connection_info()
+            authenticationRequest(self.myTerminal.getMacAddress)
+            return
+          default: // Andere, nicht definierte, Antwort
+            self.myTerminal.setConnected(false)
+            content = self.myTerminal.generate_connection_info()
+            authenticationRequest(self.myTerminal.getMacAddress)
+            return
+        }
       }
     }
-  });
+    visualizeStatusInfo(content)
+  })
+}
 
-  reader.on('end', function() {
-    console.log('Status(', reader.name, '): Removed');
+authenticationRequest = function(macAsString) {
+  request_options = {
+    url: 'http://10.99.99.104:3000/api/v1/ping', // TODO WOHER?
+    headers: {
+      'X-Tc-Token': self.myTerminal.getMacAddress(),
+      'Content-Type': 'application/json'
+    }
+  }
 
-    // Release resources.
-    reader.close();
-    pcsc.close();
-  });
-});
+  request(request_options, function(error, httpResponse, body){
+    if(!error && httpResponse.statusCode == 200){
+      // Yeah die MAC-Adresse ist beim Server bekannt
+      self.myTerminal.setAuthenticated(true)
+      self.myTerminal.setConnected(true)
+    } else if(!error && httpResponse.statusCode == 401) {
+      // Die Mac-Adresse ist beim Server nicht bekannt
+      self.myTerminal.setAuthenticated(false)
+      self.myTerminal.setConnected(true)
+    } else { 
+      // Alles andere -> Fehler.
+      self.myTerminal.setConnected(false)
+    }
+    visualizeStatusInfo(self.myTerminal.generate_connection_info())
+  })
+}
 
-pcsc.on('error', function(err) {
-    console.log('Error( PCSC ): ', err);
-});
+
+tryConnectTheReader = function(){
+  if(self.readerConnectTimeOut != undefined) {
+    clearInterval(self.readerConnectTimeOut)
+  }
+  if(self.myTerminal.getReaderRdy()) {
+    visualizeStatusInfo(self.myTerminal.generate_connection_info())
+  }else {
+    self.theReader.open()
+    self.readerConnectTimeOut = setInterval(tryConnectTheReader, 5*1000)
+  }
+}
+
+var readerDataFunction = function(tagID){
+  tagStatus = self.myTerminal.checkTagId(tagID)
+  visualizeStatusInfo(tagStatus)
+  if(tagStatus['status'] == 'info'){
+    sendTagRequest(tagID)
+  }
+}
+
+var readerCloseFunction = function(data){
+  self.myTerminal.setReaderRdy(false)
+  visualizeStatusInfo(self.myTerminal.generate_connection_info(data))
+  tryConnectTheReader()
+}
+
+var readerRdyFunction = function(){
+  self.myTerminal.setReaderRdy(true)
+  clearInterval(self.readerConnectTimeOut)
+  visualizeStatusInfo(self.myTerminal.generate_connection_info())
+}
 
 
+this.theReader = new theReaderClass(readerRdyFunction, readerDataFunction, readerCloseFunction)
 
-
+appHelper.getMac(function(error, mac){
+  self.myTerminal.setMacAddress(mac)
+  self.pingTimeout = setTimeout(function(){
+    authenticationRequest(self.myTerminal.getMacAddress())
+  }, 5 * 1000)
+  self.readerConnectTimeOut = setInterval(tryConnectTheReader, 1000)
+})
