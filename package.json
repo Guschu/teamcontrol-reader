@@ -21,7 +21,6 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^3.2.0",
-    "sinon": "^1.17.7",
-    "virtual-serialport": "^0.3.3"
+    "sinon": "^1.17.7"
   }
 }
