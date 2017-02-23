@@ -10,9 +10,23 @@ var request = require('request')
 appHelper = require('../helpers/application_helper')
 var theReaderClass = require('../models/reader/rfidReader')
 var StatusInfo = require('../models/statusInfo')
+pingEndpoint = '/api/v1/ping'
+eventEndpoint = '/api/v1/event'
+productionStartURL = 'https://r4h.teamcontrol.de'
+devStartURL = 'http://10.99.99.104:3000'
+
+if(process.env.NODE_ENV == 'development'){
+  pingEndpoint = devStartURL + pingEndpoint
+  eventEndpoint = devStartURL + eventEndpoint
+}else {
+  pingEndpoint = productionStartURL + pingEndpoint
+  eventEndpoint = productionStartURL + eventEndpoint  
+}
+
 /**
  * Get port from environment and store in Express.
  */
+
 var port = normalizePort(process.env.PORT || '8080')
 app.set('port', port)
 /**
@@ -104,9 +118,8 @@ visualizeStatusInfo = function(statusInfo) {
 
 
 sendTagRequest = function(tagID, macAsString){
-  that = this
   request_options = {
-    url: 'http://10.99.99.104:3000/api/v1/event', // TODO WOHER? https://r4h.teamcontrol.de
+    url: eventEndpoint, // TODO WOHER? https://r4h.teamcontrol.de
     headers: {
       'X-Tc-Token': self.myTerminal.getMacAddress(),
       'Content-Type': 'application/json'
@@ -160,8 +173,9 @@ sendTagRequest = function(tagID, macAsString){
 }
 
 authenticationRequest = function(macAsString) {
+  console.log(eventEndpoint)
   request_options = {
-    url: 'http://10.99.99.104:3000/api/v1/ping', // TODO WOHER? https://r4h.teamcontrol.de
+    url: self.eventEndpoint,
     headers: {
       'X-Tc-Token': self.myTerminal.getMacAddress(),
       'Content-Type': 'application/json'
