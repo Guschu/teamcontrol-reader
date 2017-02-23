@@ -13,7 +13,7 @@ var StatusInfo = require('../models/statusInfo')
 /**
  * Get port from environment and store in Express.
  */
-var port = normalizePort(process.env.PORT || '4000')
+var port = normalizePort(process.env.PORT || '8080')
 app.set('port', port)
 /**
  * Create HTTP server.
@@ -23,7 +23,7 @@ var server = http.createServer(app)
  * Listen on provided port, on all network interfaces.
  */
 var io = require('socket.io').listen(server)
-server.listen(port, '0.0.0.0')
+server.listen(port, '127.0.0.1')
 server.on('error', onError)
 server.on('listening', onListening)
 /**
@@ -106,7 +106,7 @@ visualizeStatusInfo = function(statusInfo) {
 sendTagRequest = function(tagID, macAsString){
   that = this
   request_options = {
-    url: 'http://10.99.99.104:3000/api/v1/event', // TODO WOHER?
+    url: 'https://r4h.teamcontrol.de/api/v1/event', // TODO WOHER?
     headers: {
       'X-Tc-Token': self.myTerminal.getMacAddress(),
       'Content-Type': 'application/json'
@@ -161,7 +161,7 @@ sendTagRequest = function(tagID, macAsString){
 
 authenticationRequest = function(macAsString) {
   request_options = {
-    url: 'http://10.99.99.104:3000/api/v1/ping', // TODO WOHER?
+    url: 'https://r4h.teamcontrol.de/api/v1/ping', // TODO WOHER?
     headers: {
       'X-Tc-Token': self.myTerminal.getMacAddress(),
       'Content-Type': 'application/json'
