@@ -1,4 +1,4 @@
-var StatusInfo = require('./statusinfo')
+var StatusInfo = require('./statusInfo')
 /*
   Prio Order für Messages:
     1. Internet?
