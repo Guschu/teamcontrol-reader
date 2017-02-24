@@ -4,9 +4,6 @@ var StatusInfo = require('./statusInfo')
     1. Internet?
     2. Am Server registriert?
     3. Reader bereit zum lesen?
-
-    TODO:
-      MAC-setzen
 */
 function Terminal(){
   var macAddress = ''
@@ -75,8 +72,6 @@ function Terminal(){
   this.checkTagId = function(tagId){
     if(this.isConnected && this.isAuthenticated){
       // data ist ein String. Wie er aussieht ist mit egal
-      // Was muss ich tun?
-      // Überprüfen wann/ob der String das letzte mal gesendet wurde.
       lastscanTime = lastScanTimePerID[tagId]
 
       if(lastscanTime != null){

@@ -7,21 +7,9 @@ var debug = require('debug')('teamcontrol-reader:server')
 var http = require('http')
 var Terminal = require('../models/terminal')
 var request = require('request')
-appHelper = require('../helpers/application_helper')
+var appHelper = require('../helpers/application_helper')
 var theReaderClass = require('../models/reader/rfidReader')
 var StatusInfo = require('../models/statusInfo')
-pingEndpoint = '/api/v1/ping'
-eventEndpoint = '/api/v1/event'
-productionStartURL = 'https://r4h.teamcontrol.de'
-devStartURL = 'http://10.99.99.104:3000'
-
-if(process.env.NODE_ENV == 'development'){
-  pingEndpoint = devStartURL + pingEndpoint
-  eventEndpoint = devStartURL + eventEndpoint
-}else {
-  pingEndpoint = productionStartURL + pingEndpoint
-  eventEndpoint = productionStartURL + eventEndpoint  
-}
 
 /**
  * Get port from environment and store in Express.
@@ -86,14 +74,33 @@ function onListening() {
   debug('Listening on ' + bind)
 }
 
-this.myTerminal = new Terminal()
-var displayTimeout
+pingEndpoint = '/api/v1/ping'
+eventEndpoint = '/api/v1/event'
+productionStartURL = 'https://r4h.teamcontrol.de'
+devStartURL = 'http://10.99.99.104:3000'
+
+if(process.env.NODE_ENV == 'dev'){
+  pingEndpoint = devStartURL + pingEndpoint
+  eventEndpoint = devStartURL + eventEndpoint
+}else {
+  pingEndpoint = productionStartURL + pingEndpoint
+  eventEndpoint = productionStartURL + eventEndpoint  
+}
+
 var pingTimeout
 var readerConnectTimeOut
 var self = this
 var lastConnectedClient
-var displayTimeOutRunning = false
-// Kommt ein neuer Client bekommt er den Aktuellen Status zu sehen
+
+
+this.myTerminal = new Terminal()
+
+/*
+ * Ein neuer Client kommt und wird der aktuelle Client.
+ * Socket.io erlaubt es nicht im Callback einen Broadcast an alle Clients zu schicken!
+ * Deswegen gibt es aktuell nur einen Client. Das führt auch nicht zu Problemen da
+ * das "Backend" des Terminals nur Intern erreichbar ist.
+*/
 io.on('connection', function (socket) {
   if(self.myTerminal != null) {
     lastConnectedClient = socket
@@ -101,11 +108,13 @@ io.on('connection', function (socket) {
   }
 })
 
-visualizeScanInfo = function(scanInfo){
-
-}
-
-// Leitet den aktuellen Status an den Client weiter
+/*
+ * Übergibt eine StatusInfo an den aktuellen Client.
+ * Die StatusInfo wird 5 Sekunden angezeigt und danach durch den aktuellen Status des
+ * Terminals ersetzt, nachdem dieses eine Abfrage an den Server gestartet hat.
+ * Kommt in der Zwischenzeit eine "aktuellere" StatusInfo wird
+ * diese angezeigt und der Timer zurück gesetzt.
+*/
 visualizeStatusInfo = function(statusInfo) {
   clearTimeout(self.pingTimeout)
   if(lastConnectedClient != undefined){
@@ -116,10 +125,14 @@ visualizeStatusInfo = function(statusInfo) {
   }, 5 * 1000)
 }
 
+/*
+ * Es wird ein Request mit einem gelesenen Tag an den Endpoint 'event' des Backends gesendet.
+ * Dazu wird die tagID benötigt. Die MAC-Adresse wird vom Terminal bezogen.
+*/
+sendTagRequest = function(tagID){
 
-sendTagRequest = function(tagID, macAsString){
   request_options = {
-    url: eventEndpoint, // TODO WOHER? https://r4h.teamcontrol.de
+    url: eventEndpoint,
     headers: {
       'X-Tc-Token': self.myTerminal.getMacAddress(),
       'Content-Type': 'application/json'
@@ -129,6 +142,7 @@ sendTagRequest = function(tagID, macAsString){
     }
   }
 
+  // Der Eigentliche Request
   request.post(request_options, function(error, httpResponse, body){
     content = new StatusInfo()
 
@@ -136,43 +150,41 @@ sendTagRequest = function(tagID, macAsString){
       // Fehler bei der Übertragung. Selbes verhalten wie bei "default"?
       self.myTerminal.connectionError(error)
       content = self.myTerminal.generate_connection_info()
-      return
     } else {
-      if(httpResponse.statusCode >= 200 && httpResponse.statusCode < 300){
-        content = httpResponse.body
+      switch(httpResponse.statusCode){
+        case 200: // registrierter Tag aktzeptiert 
+        case 201: // Tag wurde mit Fahrer verknüpft
+        case 406: // tagID ist ungültig
+        case 500: // tagID ist auch hier ungültig o.O?
+        case 404: // Kein aktives Rennen
+          content = httpResponse.body
           if(content['status']) {
           } else {
             content = JSON.parse(content)
           }
-      }else{
-        switch(httpResponse.statusCode){
-          case 406: // tagID ist ungültig
-          case 500: // tagID ist auch hier ungültig o.O?
-          case 404: // Kein aktives Rennen
-            content = httpResponse.body
-            if(content['status']) {
-            } else {
-              content = JSON.parse(content)
-            }
-            break
-          case 401: // Terminal nicht bekannt
-            self.myTerminal.setAuthenticated(false)
-            content = self.myTerminal.generate_connection_info()
-            authenticationRequest(self.myTerminal.getMacAddress)
-            return
-          default: // Andere, nicht definierte, Antwort
-            self.myTerminal.setConnected(false)
-            content = self.myTerminal.generate_connection_info()
-            authenticationRequest(self.myTerminal.getMacAddress)
-            return
-        }
+          break
+        case 401: // Terminal nicht bekannt
+          self.myTerminal.setAuthenticated(false)
+          content = self.myTerminal.generate_connection_info()
+          authenticationRequest(self.myTerminal.getMacAddress())
+          break
+        default: // Andere, nicht definierte, Antwort
+          self.myTerminal.setConnected(false) // Das ist anders als case 401!!!
+          content = self.myTerminal.generate_connection_info()
+          authenticationRequest(self.myTerminal.getMacAddress())
       }
     }
     visualizeStatusInfo(content)
   })
 }
 
+/*
+ * Der Server wird angepingt um zu
+ * 1. prüfen ob der Server überhaupt erreichbar ist
+ * 2. das Terminal beim Server bekannt ist
+*/
 authenticationRequest = function(macAsString) {
+
   request_options = {
     url: pingEndpoint,
     headers: {
@@ -198,7 +210,9 @@ authenticationRequest = function(macAsString) {
   })
 }
 
-
+/*
+ * Solange der Reader nicht Ready ist wird versucht ihn zu starten
+*/
 tryConnectTheReader = function(){
   if(self.readerConnectTimeOut != undefined) {
     clearInterval(self.readerConnectTimeOut)
@@ -207,11 +221,12 @@ tryConnectTheReader = function(){
     visualizeStatusInfo(self.myTerminal.generate_connection_info())
   }else {
     self.theReader.open()
-    self.readerConnectTimeOut = setInterval(tryConnectTheReader, 5*1000)
+    self.readerConnectTimeOut = setInterval(tryConnectTheReader, 1000)
   }
 }
 
-var readerDataFunction = function(tagID){
+// CallBack Reader
+readerDataFunction = function(tagID){
   tagStatus = self.myTerminal.checkTagId(tagID)
   visualizeStatusInfo(tagStatus)
   if(tagStatus['status'] == 'info'){
@@ -219,13 +234,15 @@ var readerDataFunction = function(tagID){
   }
 }
 
-var readerCloseFunction = function(data){
+// CallBack Reader
+readerCloseFunction = function(data){
   self.myTerminal.setReaderRdy(false)
   visualizeStatusInfo(self.myTerminal.generate_connection_info(data))
   tryConnectTheReader()
 }
 
-var readerRdyFunction = function(){
+// CallBack Reader
+readerRdyFunction = function(){
   self.myTerminal.setReaderRdy(true)
   clearInterval(self.readerConnectTimeOut)
   visualizeStatusInfo(self.myTerminal.generate_connection_info())
@@ -234,6 +251,7 @@ var readerRdyFunction = function(){
 
 this.theReader = new theReaderClass(readerRdyFunction, readerDataFunction, readerCloseFunction)
 
+// Wenn die MAC-Adresse des Terminals bekannt ist, kann mit den Request begonnen werden.
 appHelper.getMac(function(error, mac){
   self.myTerminal.setMacAddress(mac)
   self.pingTimeout = setTimeout(function(){
