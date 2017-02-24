@@ -51,16 +51,19 @@ function RFIDReader(rdyCallback, dataCallback, closeCallback){
 
       // Es kommen Daten vom Reader rein. Erstmal verarbeiten!!!
       readerPort.on('data', function(data){
-        // Daten kommen als Number-Array in Dezimal rein 
-        // Die ID startet nach dem ersten 0x02 und endet vor der Sequenz 0x0D, 0x0A, 0x1B
-
         /*
           Möglicher income:
-              Manchmal kommt vor dem STX auch noch irgendwas anderes. Nicht genau definiert
+            Manchmal kommt vor dem STX auch noch irgendwas anderes. Nicht genau definiert
             STX + Card-ID + CR + LF (Wenn eine Karte auf den Reader gelegt wurde)
             ESC (Tag wurde vom Reader entfernt)
             STX + Card-ID + CR + LF ( Manchmal kommt beides hintereinander)
             BEL (Der Knopf wurde gedrückt)
+            STX = 0x02
+            CARD-ID -> Bytes
+            CR = 0x0D
+            LF = 0x0A
+            ESC = 0x1B
+            BEL = 0x07
         */
         senderrorsound = false
         for(const value of data.values()){
@@ -80,7 +83,9 @@ function RFIDReader(rdyCallback, dataCallback, closeCallback){
             tagIDStartPos = bufferNextPos
           }
           if((value == 0x0D || value == 0x0A) && tagIDStartPos > -1){
-            // Möglicher Anfang vom Ende. Es fehlt noch 0x1B
+            // Mögliches Ende bei 0x0D
+            // Ende nach 0x0A
+            // Wird unten geprüft
             tagIDEndPos = bufferNextPos
           }
           dataBuffer[bufferNextPos] = value
