@@ -26,26 +26,6 @@
     group: root
     mode: 0644
 
-- name: Copy custom splash image
-  copy:
-    src: splash.png
-    dest: /etc/splash.png
-    owner: root
-    group: root
-    mode: 0644
-- name: Create splash service for systemd
-  copy:
-    src: splash.service
-    dest: /lib/systemd/system/splash.service
-    owner: root
-    group: root
-    mode: 0644
-- name: Enable splash service
-  systemd:
-    name: splash
-    enabled: yes
-    masked: no
-
 - apt: name=aptitude state=present
 - name: Upgrade APT packages
   apt: >

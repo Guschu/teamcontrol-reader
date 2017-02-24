@@ -2,4 +2,4 @@
 - hosts: all
   roles:
     - setup
-  #  - application
+    - application

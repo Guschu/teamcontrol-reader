@@ -1,17 +1,41 @@
 ---
+
+- name: Get Node 7.x Source
+  shell: "curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -"
+
+- name: Install nodejs
+  command: apt-get -y install nodejs
+
 - name: Install required packages
   apt: "name={{ item }} install_recommends=false state=present"
   become: true
   with_items:
     - fbi
     - git
-    - npm
     - xorg
     - gdm3
     - matchbox
     - x11-xserver-utils
     - unclutter
     - midori
+
+- name: Enable AutoLogin with gdm3
+  lineinfile:
+    dest: /etc/gdm3/daemon.conf
+    line: "{{ item }}"
+    state: present
+    insertafter: '^\[daemon\]'
+  with_items:
+    - "AutomaticLoginEnable = true"
+    - "AutomaticLogin = pi"
+
+- name: Create .ssh Directory
+  file:
+    path: /home/pi/.ssh
+    state: directory
+    mode: "0700"
+    owner: "pi"
+    group: "pi"
 
 - name: Copy deploy keys
   copy:
@@ -22,15 +46,36 @@
     - { src: 'gitlab_rsa', dest: '.ssh/gitlab_rsa' }
     - { src: 'gitlab_rsa.pub', dest: '.ssh/gitlab_rsa.pub' }
 
+- name: Remove Folder with application
+  file:
+    path: /home/pi/teamcontrol-reader
+    state: 'absent'
+
 - name: Clone application from git
   git:
     repo: ssh://git@gitlab.software-consultant.net/swc/teamcontrol-reader.git
     dest: /home/pi/teamcontrol-reader
     key_file: .ssh/gitlab_rsa
     accept_hostkey: true
-    update: true
 
-# - name: Create teamcontrol service
-#   command: 'echo 1'
-# - name: Enable teamcontrol service
-#   command: 'echo 1'
+- name: Change Application Folder Owner to pi 
+  command: "chown pi:pi -R /home/pi/teamcontrol-reader"
+
+- name: Install npm Packages
+  npm:
+    path: /home/pi/teamcontrol-reader
+  become_user: "pi"
+
+- name: Copy xsession file
+  copy:
+    src: '.xsession'
+    dest: '/home/pi/.xsession'
+    mode: 'a+x'
+    owner: 'pi'
+    group: 'pi'
+
+- name: Restart Raspberry
+  command: shutdown -r now
+  async: 0
+  poll: 0
+  ignore_errors: true
