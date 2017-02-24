@@ -2,21 +2,31 @@
 
 Die **Lesestation** für das Projekt [TeamControl](https://gitlab.software-consultant.net/swc/teamcontrol).
 
-Aufgabe der Lesestation ist es NFC-Tags zu lesen und an den Server zu schicken.
+Aufgabe der Lesestation ist es RFID-Tags zu lesen und an den Server zu schicken.
 
 ## Installation
-Es ist vorgesehen, dass die Lesestation auf einem __Raspberry-PI__ __2__ __Model__ __B__ läuft.
-Der __PI__ benötigt Internet, das NFC-Lesegerät [ACR1251U USB NFC Reader II](http://www.acs.com.hk/en/products/218/acr1251u-usb-nfc-reader-ii/) sowie einen Monitor zur Anzeige.
+Es ist vorgesehen, dass die Lesestation auf einem __Raspberry-PI__ __3__ __Model__ __B__ läuft.
+Der __PI__ benötigt Internet, ein Lesegerät und einen Monitor zur Anzeige.
 
-## Nutzung
-Zurzeit ist die Adresse der API auf die IP-Adresse von Davids Mac gesetzt.
-Um dies zu ändern müssen in der Datei `start` die export-Zeilen auskommentiert werden um den Default zu erreichen.
+### Development
+Es wird benötigt:
+  - npm
+  - node
 
-Um Änderungen auf dem PI zu machen wird das git-Repo gepullt. Dazu muss man sich per ssh mit dem PI verbinden und im Ordner `home/pi/teamcontrol-reader` ein `git pull` durchführen. Im Anschluss muss die Datei `start` wieder ausführbar gemacht werden `sudo chmod +x /home/pi/teamcontrol-reader/start`.
+Vor dem Start:
+  - `npm install`
 
-## Neue Installation
+In bin/www muss `devStartURL` richtig gesetzt werden.
+
+Danach kann mit `NODE_ENV=dev` das Terminal gestartet werden
+
+
+### Production
 
 Der folgende Befehl initialisiert alle Raspbery PI die in der Datei `provisioning/inventory` namentlich genannt sind.
 
     cd provisioning && ansible-playbook -i inventory playbook.yml
 
+## Momentan unterstützte Reader:
+  - [PROMAG PCR300M](http://www.promageurope.com/products/rfid-readers-and-writers/rfid-reader-pcr300.htm)
+    - Mögliche Befehle an den Reader sind in den [docs](docs) zu finden
