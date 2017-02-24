@@ -7,16 +7,24 @@
   timezone:
     name: Europe/Berlin
 
-- name: Disable overscan, unnecessary for HDMI
+- name: Set boot options
   lineinfile:
     dest: /boot/config.txt
-    regexp: '^#disable_overscan='
-    line: 'disable_overscan=1'
-- name: Silence boot by sending logs to different tty
-  replace:
+    line: "{{ item }}"
+    state: present
+    insertafter: EOF
+  with_items:
+    - "disable_splash=1"
+    - "disable_overscan=1"
+    - "hdmi_force_hotplug=1"
+
+- name: Set cmdline options
+  copy:
+    src: cmdline.txt
     dest: /boot/cmdline.txt
-    regexp: 'console=tty1'
-    replace: 'console=tty9'
+    owner: root
+    group: root
+    mode: 0644
 
 - name: Copy custom splash image
   copy:
@@ -44,10 +52,6 @@
     upgrade=yes
     update_cache=yes
     cache_valid_time=3600
-- name: Install required packages
-  apt: "name={{ item }} state=present"
-  with_items:
-    - fbi
 - name: APT auto remove unneeded packages
   command: apt-get -y autoremove warn=no
   changed_when: False
