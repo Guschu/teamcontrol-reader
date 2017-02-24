@@ -1,135 +1,92 @@
-var request = require('request');
-
+var StatusInfo = require('./statusInfo')
+/*
+  Prio Order für Messages:
+    1. Internet?
+    2. Am Server registriert?
+    3. Reader bereit zum lesen?
+*/
 function Terminal(){
-  Terminal.host = "https://r4h.teamcontrol.de";
-  this.statusRequestAddress = "/api/v1/ping";
-  this.tagRequestAddress = "/api/v1/event";
-  var macAddress = "";
-  var authenticated = false;
-  var timeToShow = 5 * 1000;
-  var lastscans = new Object();
-  // StandardServer oder eigener?
-  var a = process.env.TCR_HOST;
-  if(a != undefined && a.length > 0){
-    Terminal.host = a;
-  }
+  var macAddress = ''
+  var splittedMacAddress = ''
+  var isConnected = false
+  var isAuthenticated = false
+  var isReaderReady = false
+  var lastScanTimePerID = new Object()
+  var authenticationTimer
 
-  this.statusRequestAddress = Terminal.host + this.statusRequestAddress;
-  this.tagRequestAddress = Terminal.host + this.tagRequestAddress;
+  this.generate_connection_info = function(additionalInfo){
+    var info
 
-  // Splittet einen String in Blöcke von 2 mit Leerzeichen
-  this.blocksOfTwo = function(textToSplit) {
-    if(!textToSplit || textToSplit.length === 0){
-      return textToSplit;
-    }
-    var splitted = textToSplit.split('');
-    var merged = [];
-    for( var i = 0; i < splitted.length; i+=2 ){
-      merged.push(splitted[i]+splitted[i+1]);
-    }
-    return merged.join(' ');
-  }
-
-  // Authenticate Request an Server
-  this.authenticate = function(callback) {
-    var that = this;
-
-    options = {
-      url: this.statusRequestAddress,
-      headers: {
-        'X-Tc-Token': that.macAddress,
-        'Content-Type': 'application/json'
-      }
-    }
-
-    content = {
-      status: 'wait',
-      message: this.blocksOfTwo(this.macAddress),
-      title: 'Station in TeamControl registrieren'
-    }
-
-    var wasAuthenticated = that.authenticated;
-    request(options, function(error, httpResponse, body){
-        if(!error && httpResponse.statusCode == 200){
-          that.authenticated = true;
-          content['status'] = 'info';
-          content['message'] = "Bereit";
-          content['title'] = ''
+    if(this.isConnected) {
+      if(this.isAuthenticated) {
+        if(this.isReaderReady) {
+          info = new StatusInfo('', 'info', 'Bereit')
         } else {
-          that.authenticated = false;
+          info = new StatusInfo('','wait','Warte auf Reader')
         }
-        if(wasAuthenticated && that.authenticated){
-          callback(null);
-        }else{
-          callback(content);
-        }
+      } else {
+        info = new StatusInfo('Station in TeamControl registrieren', 'wait', splittedMacAddress)
       }
-    );
-  };
-
-  this.sendTag = function(tagID, callback){
-    var that = this;
-
-    options = {
-      url: this.tagRequestAddress,
-      headers: {
-        'X-Tc-Token': this.macAddress,
-        'Content-Type': 'application/json'
-      },
-      form: {
-        id: tagID
-      }
+    } else {
+      info = new StatusInfo('Verbindung mit dem Server fehlgeschlagen', 'wait', 'Bitte Verbindung überprüfen')
     }
-
-    content = {
-      status: 'wait',
-      message: this.blocksOfTwo(this.macAddress),
-      title: 'Station in TeamControl registrieren'
-    }
-
-    // 15 Sekunden Timeout
-    lastscan = lastscans[tagID]
-    if(lastscan != null) {
-      difference = new Date(Date.now() - lastscan);
-      console.log("Difference :"+difference.getSeconds());
-      if( difference.getSeconds() <= 5 ) {
-        content['status'] = 'error'
-        content['message'] = 'Bitte warten'
-        content['title'] = 'Zu häufig gescannt - Bitte 5 Sekunden warten'
-        lastscans[tagID] = Date.now();
-        callback(content);
-        return;
-      }
-    }
-    console.log('lulu');
-    lastscans[tagID] = Date.now();
-
-    // 401 = Nicht auth, 404 = Kein Rennen, 406 = Keine Aktivierung
-    request.post(options, function(error, httpResponse, body){
-        if(!error && httpResponse.statusCode != 401){
-          content = httpResponse.body;
-        }else {
-          content['status'] = 'wait';
-          content['message'] = that.blocksOfTwo(that.macAddress);
-          content['title'] = 'Station in TeamControl registrieren'
-          that.authenticated = false;
-        }
-        callback(content);
-      }
-    );
-  };
-
-  this.isAuthenticated = function() {
-    return this.authenticated;
-  };
-
-  this.setMac = function(mac){
-    this.macAddress = mac;
+    info.additional = additionalInfo
+    return info
   }
 
-  this.getMac = function(){
-    return this.macAddress;
+  this.getMacAddress = function() {
+    return macAddress
+  }
+
+  this.setConnected = function(newIsConnected) {
+    this.isConnected = newIsConnected
+    if(!this.isConnected){
+      this.isAuthenticated = false
+    }
+  }
+  this.setAuthenticated = function(newIsAuthenticated) {
+    this.isAuthenticated = newIsAuthenticated
+  }
+
+  this.setReaderRdy = function(newIsReaderRdy) {
+    this.isReaderReady = newIsReaderRdy
+  }
+
+  this.getReaderRdy = function() {
+    return isReaderReady
+  }
+
+  this.setMacAddress = function(macAsString) {
+    macAddress = macAsString || ''
+    if(!macAddress || macAddress.length == 0){
+      splittedMacAddress = macAddress
+    } else {
+      splittedMacAddress = macAddress.split(/(..)/).filter(function(val){ return val.length > 0 }).join(' ')
+    }
+  }
+
+  this.getSplittedMacAddress = function(){
+    return splittedMacAddress
+  }
+
+  this.checkTagId = function(tagId){
+    if(this.isConnected && this.isAuthenticated){
+      // data ist ein String. Wie er aussieht ist mit egal
+      lastscanTime = lastScanTimePerID[tagId]
+
+      if(lastscanTime != null){
+        difference = new Date(Date.now() - lastscanTime)
+        if(difference.getSeconds() <= 5){
+          return new StatusInfo('Zu häufig gescannt - Bitte 5 Sekunden warten', 'error', 'Bitte warten')
+        }
+      }
+      
+      lastScanTimePerID[tagId] = Date.now()
+      // Der Tag kann gesendet werden
+      return new StatusInfo('Daten werden übermittelt', 'info', 'Bitte warten')
+    }
+    return this.generate_connection_info()
   }
 }
 
-module.exports = Terminal;
+module.exports = Terminal

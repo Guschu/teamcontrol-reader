@@ -1,0 +1,18 @@
+image: node:7.5
+
+stages:
+  - test
+  - coverage
+
+before_script:
+  - npm install
+  
+test:
+  stage: test
+  script:
+    - npm test
+
+coverage:
+  stage: coverage
+  script:
+    - npm run coverage
