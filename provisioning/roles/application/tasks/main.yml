@@ -1,12 +1,17 @@
 ---
 - name: Install required packages
-  apt: "name={{ item }} state=present"
+  apt: "name={{ item }} install_recommends=false state=present"
   become: true
   with_items:
+    - fbi
     - git
     - npm
-    - midori
+    - xorg
+    - gdm3
     - matchbox
+    - x11-xserver-utils
+    - unclutter
+    - midori
 
 - name: Copy deploy keys
   copy:
@@ -23,7 +28,7 @@
     dest: /home/pi/teamcontrol-reader
     key_file: .ssh/gitlab_rsa
     accept_hostkey: true
-    force: true
+    update: true
 
 # - name: Create teamcontrol service
 #   command: 'echo 1'

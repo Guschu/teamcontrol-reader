@@ -1,20 +1,5 @@
 ---
 - hosts: all
-  # roles:
-  #   - setup
-  tasks:
-  - name: Install required packages
-    apt: "name={{ item }} state=present"
-    become: true
-    with_items:
-      - git
-      - npm
-  - name: Clone application from git
-    git:
-      repo: ssh://git@gitlab.software-consultant.net:swc/teamcontrol-reader.git
-      dest: /home/pi/teamcontrol
-      accept_hostkey: true
-  - name: Create teamcontrol service
-    command: 'echo 1'
-  - name: Enable teamcontrol service
-    command: 'echo 1'
+  roles:
+    - setup
+  #  - application
