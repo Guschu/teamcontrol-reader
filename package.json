@@ -3,8 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
-    "test": "mocha"
+    "start": "node ./bin/www.js",
+    "test": "mocha",
+    "coverage": "nyc --all mocha --timeout=3000"
   },
   "dependencies": {
     "body-parser": "~1.13.2",
@@ -21,6 +22,18 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^3.2.0",
+    "nyc": "^10.1.2",
     "sinon": "^1.17.7"
+  },
+  "nyc": {
+    "include":[
+      "app.js",
+      "bin/*",
+      "models/**/*.js",
+      "helpers/**/*.js"
+    ],
+    "reporter": [
+      "text-summary"
+    ]
   }
 }
