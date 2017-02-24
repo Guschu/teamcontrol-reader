@@ -4,5 +4,5 @@
 # Default ist https://r4h.teamcontrol.de
 # export TCR_HOST=http://10.99.99.104:3000
 cd /home/pi/teamcontrol-reader
-nohup npm start &
-xinit raspberry_startup/kiosk
+nohup NODE_ENV=production npm start &
+xinit /home/pi/teamcontrol-reader/raspberry_startup/kiosk
