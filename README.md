@@ -4,6 +4,7 @@ Die **Lesestation** für das Projekt [TeamControl](https://gitlab.software-consu
 
 [![build status](https://gitlab.software-consultant.net/swc/teamcontrol-reader/badges/master/build.svg)](https://gitlab.software-consultant.net/swc/teamcontrol-reader/commits/master)
 [![coverage report](https://gitlab.software-consultant.net/swc/teamcontrol-reader/badges/master/coverage.svg)](https://gitlab.software-consultant.net/swc/teamcontrol-reader/commits/master)
+
 Aufgabe der Lesestation ist es RFID-Tags zu lesen und an den Server zu schicken.
 
 ## Installation
