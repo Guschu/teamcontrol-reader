@@ -3,13 +3,11 @@
 - name: Get Node 7.x Source
   shell: "curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -"
 
-- name: Install nodejs
-  command: apt-get -y install nodejs
-
 - name: Install required packages
   apt: "name={{ item }} install_recommends=false state=present"
   become: true
   with_items:
+    - nodejs
     - fbi
     - git
     - xorg
@@ -76,6 +74,5 @@
 
 - name: Restart Raspberry
   command: shutdown -r now
-  async: 0
-  poll: 0
   ignore_errors: true
+  become: true
