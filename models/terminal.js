@@ -57,7 +57,7 @@ function Terminal(){
   }
 
   this.setMacAddress = function(macAsString) {
-    macAddress = macAsString
+    macAddress = macAsString || ''
     if(!macAddress || macAddress.length == 0){
       splittedMacAddress = macAddress
     } else {
@@ -66,7 +66,7 @@ function Terminal(){
   }
 
   this.getSplittedMacAddress = function(){
-    return this.splittedMacAddress
+    return splittedMacAddress
   }
 
   this.checkTagId = function(tagId){

@@ -79,7 +79,7 @@ eventEndpoint = '/api/v1/event'
 productionStartURL = 'https://r4h.teamcontrol.de'
 devStartURL = 'http://10.99.99.104:3000'
 
-if(process.env.NODE_ENV == 'dev'){
+if(app.get('env') === 'development'){
   pingEndpoint = devStartURL + pingEndpoint
   eventEndpoint = devStartURL + eventEndpoint
 }else {

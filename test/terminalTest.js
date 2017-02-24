@@ -2,11 +2,34 @@ var expect = require('chai').expect
 var Terminal = require('../models/terminal')
 var sinon = require('sinon')
 describe('Terminal', function() {
-  describe('On empty Initialization', function() {
+  describe('Initialization', function() {
     it('should be initialized with undefined MAC-Address', function() {
       t = new Terminal()
       expect(t.getMacAddress()).to.eql('')
-      expect(t.getSplittedMacAddress()).to.be.undefined
+      expect(t.getSplittedMacAddress()).to.eql('')
+    })
+    describe('and later MAC-Address set', function(){
+      it('should return the previous set MAC-Address', function(){
+        t.setMacAddress('12345678')
+        expect(t.getMacAddress()).to.eql('12345678')
+      })
+
+      it('should return the correct splitted MAC-Adress', function(){
+        t.setMacAddress('12345678')
+        expect(t.getSplittedMacAddress()).to.eql('12 34 56 78')
+      })
+
+      it('should return empty MAC and empty splitted MAC, when MAC set with empty string', function(){
+        t.setMacAddress('')
+        expect(t.getMacAddress()).to.eql('')
+        expect(t.getSplittedMacAddress()).to.eql('')
+      })
+
+      it('should return empty MAC and empty splitted MAC, when MAC set undefined', function(){
+        t.setMacAddress(undefined)
+        expect(t.getMacAddress()).to.eql('')
+        expect(t.getSplittedMacAddress()).to.eql('')
+      })
     })
   })
 

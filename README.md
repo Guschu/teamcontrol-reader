@@ -18,7 +18,7 @@ Vor dem Start:
 
 In bin/www muss `devStartURL` richtig gesetzt werden.
 
-Danach kann mit `NODE_ENV=dev` das Terminal gestartet werden
+Danach kann mit `npm start` das Terminal gestartet werden
 
 
 ### Production
