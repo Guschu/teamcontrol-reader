@@ -96,7 +96,7 @@ function RFIDReader(rdyCallback, dataCallback, closeCallback){
               // Tag ID liegt zwischen tagIDStartPos+1 und tagIDEndPos-2
               
               tagID = ''
-              for(let i = tagIDStartPos+1; i <= tagIDEndPos-2; i++){
+              for(var i = tagIDStartPos+1; i <= tagIDEndPos-2; i++){
                 tagID += ('0' + dataBuffer[i].toString(16)).substr(-2)
               }
               bufferNextPos = 0
