@@ -28,7 +28,7 @@ body {
   font-family: 'Asap', 'Open Sans', Helvetica, Arial, sans-serif;
 }
 footer {
-  background-color: #F00;
+  background-color: #FFF;
   position: absolute;
   left: 0;
   bottom: 0;
@@ -41,8 +41,9 @@ footer {
 }
 
 footer img {
-  height: 100%;
-  width: auto;
+  height: 72px;
+  margin-right: 20px;
+  float: left;
 }
 
 footer p {
