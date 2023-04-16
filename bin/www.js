@@ -121,7 +121,7 @@ visualizeStatusInfo = function(statusInfo) {
   }
   self.pingTimeout = setTimeout(function(){
     authenticationRequest(self.myTerminal.getMacAddress())
-  }, 5 * 1000)
+  }, 2 * 1000)
 }
 
 /*
