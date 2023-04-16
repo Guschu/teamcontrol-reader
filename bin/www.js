@@ -76,17 +76,16 @@ function onListening() {
 
 pingEndpoint = '/api/v1/ping'
 eventEndpoint = '/api/v1/event'
-productionStartURL = 'https://r4h.teamcontrol.de'
 devStartURL = 'http://10.99.99.104:3000'
-
+productionStartURL = 'https://teamcontrol.race4hospiz.de'
 if(app.get('env') === 'development'){
   pingEndpoint = devStartURL + pingEndpoint
   eventEndpoint = devStartURL + eventEndpoint
 }else {
   pingEndpoint = productionStartURL + pingEndpoint
-  eventEndpoint = productionStartURL + eventEndpoint  
+  eventEndpoint = productionStartURL + eventEndpoint
 }
-
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 var pingTimeout
 var readerConnectTimeOut
 var self = this
@@ -118,7 +117,7 @@ io.on('connection', function (socket) {
 visualizeStatusInfo = function(statusInfo) {
   clearTimeout(self.pingTimeout)
   if(lastConnectedClient != undefined){
-    lastConnectedClient.emit('terminalContent', statusInfo)  
+    lastConnectedClient.emit('terminalContent', statusInfo)
   }
   self.pingTimeout = setTimeout(function(){
     authenticationRequest(self.myTerminal.getMacAddress())
@@ -152,7 +151,7 @@ sendTagRequest = function(tagID){
       content = self.myTerminal.generate_connection_info()
     } else {
       switch(httpResponse.statusCode){
-        case 200: // registrierter Tag aktzeptiert 
+        case 200: // registrierter Tag aktzeptiert
         case 201: // Tag wurde mit Fahrer verknüpft
         case 406: // tagID ist ungültig
         case 500: // tagID ist auch hier ungültig o.O?
@@ -202,7 +201,7 @@ authenticationRequest = function(macAsString) {
       // Die Mac-Adresse ist beim Server nicht bekannt
       self.myTerminal.setAuthenticated(false)
       self.myTerminal.setConnected(true)
-    } else { 
+    } else {
       // Alles andere -> Fehler.
       self.myTerminal.setConnected(false)
     }
