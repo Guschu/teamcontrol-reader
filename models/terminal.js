@@ -76,8 +76,8 @@ function Terminal(){
 
       if(lastscanTime != null){
         difference = new Date(Date.now() - lastscanTime)
-        if(difference.getSeconds() <= 5){
-          return new StatusInfo('Zu häufig gescannt - Bitte 5 Sekunden warten', 'error', 'Bitte warten')
+        if(difference.getSeconds() <= 2){
+          return new StatusInfo('Zu häufig gescannt - Bitte 2 Sekunden warten', 'error', 'Bitte warten')
         }
       }
       
