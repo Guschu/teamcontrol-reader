@@ -29,7 +29,7 @@ body {
 }
 
 footer {
-  background-color: #ca060b;
+  background-color: #FFF;
   position: absolute;
   left: 0;
   bottom: 0;
@@ -40,8 +40,7 @@ footer {
 
 footer img {
   height: 72px;
-  margin-right: 20px;
-  float: left;
+  margin: 0 auto;
 }
 
 footer p {
