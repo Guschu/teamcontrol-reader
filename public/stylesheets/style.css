@@ -27,20 +27,22 @@ body {
   font-weight: 400;
   font-family: 'Asap', 'Open Sans', Helvetica, Arial, sans-serif;
 }
-
 footer {
-  background-color: #FFF;
+  background-color: #F00;
   position: absolute;
   left: 0;
   bottom: 0;
   height: 122px;
   width: 100%;
   color: #aaaaaa;
+  display: flex;
+  justify-content: center;
+  align_items: center;
 }
 
 footer img {
-  height: 72px;
-  margin: 0 auto;
+  height: 100%;
+  width: auto;
 }
 
 footer p {
